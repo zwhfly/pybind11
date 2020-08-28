@@ -168,7 +168,9 @@
 // If DEFINED, pybind11::str can only hold PyUnicodeObject, and
 // pybind11::isinstance<str>() is true only for pybind11::str.
 
-//#define PYBIND11_STR_CASTER_NO_IMPLICIT_DECODE
+#if PY_MAJOR_VERSION >= 3
+#define PYBIND11_STR_CASTER_NO_IMPLICIT_DECODE
+#endif
 // This macro has an effect only if PYBIND11_STR_NON_PERMISSIVE is defined.
 // If UNDEFINED, the pybind11::str caster will implicitly decode bytes to PyUnicodeObject.
 // If DEFINED, the pybind11::str caster will only accept PyUnicodeObject.
