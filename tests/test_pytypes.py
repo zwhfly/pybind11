@@ -113,7 +113,6 @@ def test_str(doc):
 
     assert m.str_from_object(A()) == "this is a str"
     assert m.repr_from_object(A()) == "this is a repr"
-    assert m.str_from_handle(A()) == "this is a str"
 
     s1, s2 = m.str_format()
     assert s1 == "1 + 2 = 3"
