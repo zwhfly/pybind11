@@ -125,14 +125,18 @@ def test_str(doc):
             with pytest.raises(UnicodeDecodeError):
                 m.str_from_object(malformed_utf8)
         else:
-            m.str_from_object(malformed_utf8) is malformed_utf8  # To be fixed; see #2380
+            m.str_from_object(
+                malformed_utf8
+            ) is malformed_utf8  # To be fixed; see #2380
         with pytest.raises(UnicodeDecodeError):
             m.str_from_handle(malformed_utf8)
     else:
         if hasattr(m, "has_str_non_permissive"):
             assert m.str_from_object(malformed_utf8) == "b'\\x80'"
         else:
-            assert m.str_from_object(malformed_utf8) is malformed_utf8  # To be fixed; see #2380
+            assert (
+                m.str_from_object(malformed_utf8) is malformed_utf8
+            )  # To be fixed; see #2380
         assert m.str_from_handle(malformed_utf8) == "b'\\x80'"
 
 
@@ -306,15 +310,6 @@ def test_pybind11_str_raw_str():
     valid_orig = u"Ǳ"
     valid_utf8 = valid_orig.encode("utf-8")
     valid_cvt = cvt(valid_utf8)
-<<<<<<< HEAD
-    assert type(valid_cvt) == bytes  # Probably surprising.
-    assert valid_cvt == b"\xc7\xb1"
-
-    malformed_utf8 = b"\x80"
-    malformed_cvt = cvt(malformed_utf8)
-    assert type(malformed_cvt) == bytes  # Probably surprising.
-    assert malformed_cvt == b"\x80"
-=======
     if hasattr(m, "has_str_non_permissive"):
         assert type(valid_cvt) is unicode if env.PY2 else str  # noqa: F821
         if env.PY2:
@@ -324,7 +319,7 @@ def test_pybind11_str_raw_str():
     else:
         assert valid_cvt is valid_utf8
 
-    malformed_utf8 = b'\x80'
+    malformed_utf8 = b"\x80"
     if hasattr(m, "has_str_non_permissive"):
         if env.PY2:
             with pytest.raises(UnicodeDecodeError):
@@ -335,7 +330,6 @@ def test_pybind11_str_raw_str():
             assert malformed_cvt == u"b'\\x80'"
     else:
         assert cvt(malformed_utf8) is malformed_utf8
->>>>>>> 58c1719 (Meta PR for Google Patches)
 
 
 def test_implicit_casting():
