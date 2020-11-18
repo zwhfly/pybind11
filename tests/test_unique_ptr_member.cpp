@@ -1,4 +1,5 @@
 #include "pybind11_tests.h"
+#include <pybind11/yclass.h>
 
 #include <memory>
 
@@ -38,9 +39,12 @@ inline int cpp_pattern() {
 TEST_SUBMODULE(unique_ptr_member, m) {
     m.def("cpp_pattern", cpp_pattern);
 
-    py::class_<pointee>(m, "pointee")
+    py::yclass<pointee>(m, "pointee")
+#ifdef JUNK
         .def(py::init<>())
-        .def("get_int", &pointee::get_int);
+        .def("get_int", &pointee::get_int)
+#endif
+    ;
 
     py::class_<ptr_owner>(m, "ptr_owner")
 #ifdef FEAT_UNIQUE_PTR_ARG
