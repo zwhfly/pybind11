@@ -395,7 +395,7 @@ inline void clear_instance(PyObject *self) {
 
             // We have to deregister before we call dealloc because, for virtual MI types, we still
             // need to be able to get the parent pointers.
-            if (v_h.instance_registered() && !deregister_instance(instance, v_h.value_ptr(), v_h.type))
+            if (v_h.instance_registered() && !deregister_instance(instance, v_h.xxx_value_ptr(), v_h.type))
                 pybind11_fail("pybind11_object_dealloc(): Tried to deallocate unregistered instance!");
 
             if (instance->owned || v_h.holder_constructed())

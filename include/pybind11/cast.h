@@ -225,13 +225,13 @@ struct value_and_holder {
     // Used for past-the-end iterator
     value_and_holder(size_t index) : index{index} {}
 
-    template <typename V = void> V *&value_ptr() const {
+    template <typename V = void> V *&xxx_value_ptr() const {
         return reinterpret_cast<V *&>(vh[0]);
     }
     // True if this `value_and_holder` has a non-null value pointer
-    explicit operator bool() const { return value_ptr(); }
+    explicit operator bool() const { return xxx_value_ptr(); }
 
-    template <typename H> H &holder() const {
+    template <typename H> H &xxx_holder() const {
         return reinterpret_cast<H &>(vh[1]);
     }
     bool holder_constructed() const {
@@ -519,7 +519,7 @@ public:
         auto inst = reinterpret_steal<object>(make_new_instance(tinfo->type));
         auto wrapper = reinterpret_cast<instance *>(inst.ptr());
         wrapper->owned = false;
-        void *&valueptr = values_and_holders(wrapper).begin()->value_ptr();
+        void *&valueptr = values_and_holders(wrapper).begin()->xxx_value_ptr();
 
         switch (policy) {
             case return_value_policy::automatic:
@@ -588,7 +588,7 @@ public:
 
     // Base methods for generic caster; there are overridden in copyable_holder_caster
     void load_value(value_and_holder &&v_h) {
-        auto *&vptr = v_h.value_ptr();
+        auto *&vptr = v_h.xxx_value_ptr();
         // Lazy allocation for unallocated values:
         if (vptr == nullptr) {
             auto *type = v_h.type ? v_h.type : typeinfo;
@@ -1132,7 +1132,7 @@ public:
         /* Check if this is a C++ type */
         auto &bases = all_type_info((PyTypeObject *) type::handle_of(h).ptr());
         if (bases.size() == 1) { // Only allowing loading from a single-value type
-            value = values_and_holders(reinterpret_cast<instance *>(h.ptr())).begin()->value_ptr();
+            value = values_and_holders(reinterpret_cast<instance *>(h.ptr())).begin()->xxx_value_ptr();
             return true;
         }
 
@@ -1528,8 +1528,8 @@ protected:
 
     bool load_value(value_and_holder &&v_h) {
         if (v_h.holder_constructed()) {
-            value = v_h.value_ptr();
-            holder = v_h.template holder<holder_type>();
+            value = v_h.xxx_value_ptr();
+            holder = v_h.template xxx_holder<holder_type>();
             return true;
         } else {
             throw cast_error("Unable to cast from non-held to held instance (T& to Holder<T>) "
