@@ -70,7 +70,7 @@ inline Class *construct_or_initialize(Args &&...args) { return new Class{std::fo
 template <typename Class>
 void construct_alias_from_cpp(std::true_type /*is_alias_constructible*/,
                               value_and_holder &v_h, Cpp<Class> &&base) {
-    v_h.xxx_value_ptr() = new Alias<Class>(std::move(base));
+    v_h.xxx_value_ptr<void>() = new Alias<Class>(std::move(base));  // construct_alias_from_cpp
 }
 template <typename Class>
 [[noreturn]] void construct_alias_from_cpp(std::false_type /*!is_alias_constructible*/,
@@ -104,7 +104,7 @@ void construct(value_and_holder &v_h, Cpp<Class> *ptr, bool need_alias) {
         // it was a normal instance, then steal the holder away into a local variable; thus
         // the holder and destruction happens when we leave the C++ scope, and the holder
         // class gets to handle the destruction however it likes.
-        v_h.xxx_value_ptr() = ptr;
+        v_h.xxx_value_ptr<void>() = ptr;  // construct
         v_h.set_instance_registered(true); // To prevent init_instance from registering it
         v_h.type->init_instance(v_h.inst, nullptr); // Set up the holder
         Holder<Class> temp_holder(std::move(v_h.xxx_holder<Holder<Class>>())); // Steal the holder
@@ -114,7 +114,7 @@ void construct(value_and_holder &v_h, Cpp<Class> *ptr, bool need_alias) {
         construct_alias_from_cpp<Class>(is_alias_constructible<Class>{}, v_h, std::move(*ptr));
     } else {
         // Otherwise the type isn't inherited, so we don't need an Alias
-        v_h.xxx_value_ptr() = ptr;
+        v_h.xxx_value_ptr<void>() = ptr;  // construct
     }
 }
 
@@ -123,7 +123,7 @@ void construct(value_and_holder &v_h, Cpp<Class> *ptr, bool need_alias) {
 template <typename Class, enable_if_t<Class::has_alias, int> = 0>
 void construct(value_and_holder &v_h, Alias<Class> *alias_ptr, bool) {
     no_nullptr(alias_ptr);
-    v_h.xxx_value_ptr() = static_cast<Cpp<Class> *>(alias_ptr);
+    v_h.xxx_value_ptr<void>() = static_cast<Cpp<Class> *>(alias_ptr);  // construct
 }
 
 // Holder return: copy its pointer, and move or copy the returned holder into the new instance's
@@ -138,7 +138,7 @@ void construct(value_and_holder &v_h, Holder<Class> holder, bool need_alias) {
         throw type_error("pybind11::init(): construction failed: returned holder-wrapped instance "
                          "is not an alias instance");
 
-    v_h.xxx_value_ptr() = ptr;
+    v_h.xxx_value_ptr<void>() = ptr;  // construct
     v_h.type->init_instance(v_h.inst, &holder);
 }
 
@@ -153,7 +153,7 @@ void construct(value_and_holder &v_h, Cpp<Class> &&result, bool need_alias) {
     if (Class::has_alias && need_alias)
         construct_alias_from_cpp<Class>(is_alias_constructible<Class>{}, v_h, std::move(result));
     else
-        v_h.xxx_value_ptr() = new Cpp<Class>(std::move(result));
+        v_h.xxx_value_ptr<void>() = new Cpp<Class>(std::move(result));  // construct
 }
 
 // return-by-value version 2: returning a value of the alias type itself.  We move-construct an
@@ -163,7 +163,7 @@ template <typename Class>
 void construct(value_and_holder &v_h, Alias<Class> &&result, bool) {
     static_assert(std::is_move_constructible<Alias<Class>>::value,
         "pybind11::init() return-by-alias-value factory function requires a movable alias class");
-    v_h.xxx_value_ptr() = new Alias<Class>(std::move(result));
+    v_h.xxx_value_ptr<void>() = new Alias<Class>(std::move(result));  // construct
 }
 
 // Implementing class for py::init<...>()
@@ -172,7 +172,7 @@ struct constructor {
     template <typename Class, typename... Extra, enable_if_t<!Class::has_alias, int> = 0>
     static void execute(Class &cl, const Extra&... extra) {
         cl.def("__init__", [](value_and_holder &v_h, Args... args) {
-            v_h.xxx_value_ptr() = construct_or_initialize<Cpp<Class>>(std::forward<Args>(args)...);
+            v_h.xxx_value_ptr<void>() = construct_or_initialize<Cpp<Class>>(std::forward<Args>(args)...);  // constructor::execute
         }, is_new_style_constructor(), extra...);
     }
 
@@ -182,9 +182,9 @@ struct constructor {
     static void execute(Class &cl, const Extra&... extra) {
         cl.def("__init__", [](value_and_holder &v_h, Args... args) {
             if (Py_TYPE(v_h.inst) == v_h.type->type)
-                v_h.xxx_value_ptr() = construct_or_initialize<Cpp<Class>>(std::forward<Args>(args)...);
+                v_h.xxx_value_ptr<void>() = construct_or_initialize<Cpp<Class>>(std::forward<Args>(args)...);  // constructor::execute
             else
-                v_h.xxx_value_ptr() = construct_or_initialize<Alias<Class>>(std::forward<Args>(args)...);
+                v_h.xxx_value_ptr<void>() = construct_or_initialize<Alias<Class>>(std::forward<Args>(args)...);  // constructor::execute
         }, is_new_style_constructor(), extra...);
     }
 
@@ -193,7 +193,7 @@ struct constructor {
                           !std::is_constructible<Cpp<Class>, Args...>::value, int> = 0>
     static void execute(Class &cl, const Extra&... extra) {
         cl.def("__init__", [](value_and_holder &v_h, Args... args) {
-            v_h.xxx_value_ptr() = construct_or_initialize<Alias<Class>>(std::forward<Args>(args)...);
+            v_h.xxx_value_ptr<void>() = construct_or_initialize<Alias<Class>>(std::forward<Args>(args)...);  // constructor::execute
         }, is_new_style_constructor(), extra...);
     }
 };
@@ -204,7 +204,7 @@ template <typename... Args> struct alias_constructor {
               enable_if_t<Class::has_alias && std::is_constructible<Alias<Class>, Args...>::value, int> = 0>
     static void execute(Class &cl, const Extra&... extra) {
         cl.def("__init__", [](value_and_holder &v_h, Args... args) {
-            v_h.xxx_value_ptr() = construct_or_initialize<Alias<Class>>(std::forward<Args>(args)...);
+            v_h.xxx_value_ptr<void>() = construct_or_initialize<Alias<Class>>(std::forward<Args>(args)...);  // alias_constructor::execute
         }, is_new_style_constructor(), extra...);
     }
 };

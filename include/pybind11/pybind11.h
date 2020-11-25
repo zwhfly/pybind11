@@ -1457,7 +1457,7 @@ private:
             const holder_type * /* unused */, const std::enable_shared_from_this<T> * /* dummy */) {
         try {
             auto sh = std::dynamic_pointer_cast<typename holder_type::element_type>(
-                    v_h.xxx_value_ptr<type>()->shared_from_this());
+                    v_h.xxx_value_ptr<type>()->shared_from_this());  // init_holder
             if (sh) {
                 new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(std::move(sh));
                 v_h.set_holder_constructed();
@@ -1465,7 +1465,7 @@ private:
         } catch (const std::bad_weak_ptr &) {}
 
         if (!v_h.holder_constructed() && inst->owned) {
-            new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(v_h.xxx_value_ptr<type>());
+            new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(v_h.xxx_value_ptr<type>());  // init_holder
             v_h.set_holder_constructed();
         }
     }
@@ -1487,7 +1487,7 @@ private:
             init_holder_from_existing(v_h, holder_ptr, std::is_copy_constructible<holder_type>());
             v_h.set_holder_constructed();
         } else if (inst->owned || detail::always_construct_holder<holder_type>::value) {
-            new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(v_h.xxx_value_ptr<type>());
+            new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(v_h.xxx_value_ptr<type>());  // init_holder
             v_h.set_holder_constructed();
         }
     }
@@ -1499,10 +1499,10 @@ private:
     static void init_instance(detail::instance *inst, const void *holder_ptr) {
         auto v_h = inst->get_value_and_holder(detail::get_type_info(typeid(type)));
         if (!v_h.instance_registered()) {
-            register_instance(inst, v_h.xxx_value_ptr(), v_h.type);
+            register_instance(inst, v_h.xxx_value_ptr<void>(), v_h.type);  // before init_holder
             v_h.set_instance_registered();
         }
-        init_holder(inst, v_h, (const holder_type *) holder_ptr, v_h.xxx_value_ptr<type>());
+        init_holder(inst, v_h, (const holder_type *) holder_ptr, v_h.xxx_value_ptr<type>());  // calling init_holder
     }
 
     /// Deallocates an instance; via holder, if constructed; otherwise via operator delete.
@@ -1519,12 +1519,12 @@ private:
             v_h.set_holder_constructed(false);
         }
         else {
-            detail::call_operator_delete(v_h.xxx_value_ptr<type>(),
+            detail::call_operator_delete(v_h.xxx_value_ptr<type>(),  // !v_h.holder_constructed()
                 v_h.type->type_size,
                 v_h.type->type_align
             );
         }
-        v_h.xxx_value_ptr() = nullptr;
+        v_h.xxx_value_ptr<void>() = nullptr;  // class_::dealloc
     }
 
     static detail::function_record *get_function_record(handle h) {
