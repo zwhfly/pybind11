@@ -1488,7 +1488,7 @@ template <typename... Ts> class type_caster<std::tuple<Ts...>>
 /// custom holders, but it's only necessary if the type has a non-standard interface.
 template <typename T>
 struct holder_helper {
-    static auto get(const T &p) -> decltype(p.get()) { return p.get(); }
+    static auto yyy_get(const T &p) -> decltype(p.get()) { return p.get(); }  // default implementation
 };
 
 /// Type caster for holder types like std::shared_ptr, etc.
@@ -1515,7 +1515,7 @@ public:
     explicit operator holder_type&() { return holder; }
 
     static handle cast(const holder_type &src, return_value_policy, handle) {
-        const auto *ptr = holder_helper<holder_type>::get(src);
+        const auto *ptr = holder_helper<holder_type>::yyy_get(src);  // copyable_holder_caster::cast
         return type_caster_base<type>::cast_holder(ptr, &src);
     }
 
@@ -1530,7 +1530,7 @@ protected:
         if (v_h.holder_constructed()) {
             value = v_h.xxx_value_ptr<void>();
             holder = v_h.template xxx_holder<holder_type>();
-            if (holder_helper<holder_type>::get(holder) != value) {
+            if (holder_helper<holder_type>::yyy_get(holder) != value) {  // copyable_holder_caster::load_value consistency check added by rwgk@
                 throw std::runtime_error("holder.get() != value in copyable_holder_caster::load_value");
             }
             return true;
@@ -1576,7 +1576,7 @@ struct move_only_holder_caster {
             "Holder classes are only supported for custom types");
 
     static handle cast(holder_type &&src, return_value_policy, handle) {
-        auto *ptr = holder_helper<holder_type>::get(src);
+        auto *ptr = holder_helper<holder_type>::yyy_get(src);  // move_only_holder_caster::cast
         return type_caster_base<type>::cast_holder(ptr, std::addressof(src));
     }
     static constexpr auto name = type_caster_base<type>::name;

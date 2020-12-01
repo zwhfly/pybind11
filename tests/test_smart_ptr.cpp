@@ -25,7 +25,7 @@ PYBIND11_DECLARE_HOLDER_TYPE(T, ref<T>, true);
 namespace pybind11 { namespace detail {
     template <typename T>
     struct holder_helper<ref<T>> {
-        static const T *get(const ref<T> &p) { return p.get_ptr(); }
+        static const T *yyy_get(const ref<T> &p) { return p.get_ptr(); }
     };
 } // namespace detail
 } // namespace pybind11
