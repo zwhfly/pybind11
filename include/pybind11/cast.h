@@ -211,12 +211,12 @@ struct value_and_holder {
     instance *inst = nullptr;
     size_t index = 0u;
     const detail::type_info *type = nullptr;
-    void **vh = nullptr;
+    void **zzz_vh = nullptr;
 
     // Main constructor for a found value/holder:
     value_and_holder(instance *i, const detail::type_info *type, size_t vpos, size_t index) :
         inst{i}, index{index}, type{type},
-        vh{inst->simple_layout ? inst->simple_value_holder : &inst->nonsimple.values_and_holders[vpos]}
+        zzz_vh{inst->simple_layout ? inst->simple_value_holder : &inst->nonsimple.values_and_holders[vpos]}
     {}
 
     // Default constructor (used to signal a value-and-holder not found by get_value_and_holder())
@@ -226,13 +226,13 @@ struct value_and_holder {
     value_and_holder(size_t index) : index{index} {}
 
     template <typename V> V *&xxx_value_ptr() const {
-        return reinterpret_cast<V *&>(vh[0]);
+        return reinterpret_cast<V *&>(zzz_vh[0]);
     }
     // True if this `value_and_holder` has a non-null value pointer
     explicit operator bool() const { return xxx_value_ptr<void>(); }
 
     template <typename H> H &xxx_holder() const {
-        return reinterpret_cast<H &>(vh[1]);
+        return reinterpret_cast<H &>(zzz_vh[1]);
     }
     bool holder_constructed() const {
         return inst->simple_layout
@@ -292,7 +292,7 @@ public:
         bool operator!=(const iterator &other) const { return curr.index != other.curr.index; }
         iterator &operator++() {
             if (!inst->simple_layout)
-                curr.vh += 1 + (*types)[curr.index]->holder_size_in_ptrs;
+                curr.zzz_vh += 1 + (*types)[curr.index]->holder_size_in_ptrs;
             ++curr.index;
             curr.type = curr.index < types->size() ? (*types)[curr.index] : nullptr;
             return *this;
