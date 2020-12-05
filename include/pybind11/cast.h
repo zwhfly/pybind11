@@ -392,7 +392,7 @@ PYBIND11_NOINLINE inline void instance::allocate_layout() {
 #endif
         nonsimple.status = reinterpret_cast<uint8_t *>(&nonsimple.values_and_holders[flags_at]);
     }
-    owned = true;
+    aaa_owned = true;
 }
 
 PYBIND11_NOINLINE inline void instance::deallocate_layout() {
@@ -518,20 +518,20 @@ public:
 
         auto inst = reinterpret_steal<object>(make_new_instance(tinfo->type));
         auto wrapper = reinterpret_cast<instance *>(inst.ptr());
-        wrapper->owned = false;
+        wrapper->aaa_owned = false;
         void *&valueptr = values_and_holders(wrapper).begin()->xxx_value_ptr<void>();  // holder_type not available here.
 
         switch (policy) {
             case return_value_policy::automatic:
             case return_value_policy::take_ownership:
                 valueptr = src;
-                wrapper->owned = true;
+                wrapper->aaa_owned = true;
                 break;
 
             case return_value_policy::automatic_reference:
             case return_value_policy::reference:
                 valueptr = src;
-                wrapper->owned = false;
+                wrapper->aaa_owned = false;
                 break;
 
             case return_value_policy::copy:
@@ -548,7 +548,7 @@ public:
                                      type_name + " is non-copyable!");
 #endif
                 }
-                wrapper->owned = true;
+                wrapper->aaa_owned = true;
                 break;
 
             case return_value_policy::move:
@@ -568,12 +568,12 @@ public:
                                      type_name + " is neither movable nor copyable!");
 #endif
                 }
-                wrapper->owned = true;
+                wrapper->aaa_owned = true;
                 break;
 
             case return_value_policy::reference_internal:
                 valueptr = src;
-                wrapper->owned = false;
+                wrapper->aaa_owned = false;
                 keep_alive_impl(inst, parent);
                 break;
 

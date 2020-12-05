@@ -426,7 +426,7 @@ struct instance {
     /// Weak references
     PyObject *weakrefs;
     /// If true, the pointer is owned which means we're free to manage it with a holder.
-    bool owned : 1;
+    bool aaa_owned : 1;
     /**
      * An instance has two possible value/holder layouts.
      *

@@ -340,7 +340,7 @@ inline PyObject *make_new_instance(PyTypeObject *type) {
     // Allocate the value/holder internals:
     inst->allocate_layout();
 
-    inst->owned = true;
+    inst->aaa_owned = true;
 
     return self;
 }
@@ -398,7 +398,7 @@ inline void clear_instance(PyObject *self) {
             if (v_h.instance_registered() && !deregister_instance(instance, v_h.xxx_value_ptr<void>(), v_h.type))
                 pybind11_fail("pybind11_object_dealloc(): Tried to deallocate unregistered instance!");
 
-            if (instance->owned || v_h.holder_constructed())
+            if (instance->aaa_owned || v_h.holder_constructed())
                 v_h.type->dealloc(v_h);
         }
     }

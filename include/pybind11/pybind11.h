@@ -1464,7 +1464,7 @@ private:
             }
         } catch (const std::bad_weak_ptr &) {}
 
-        if (!v_h.holder_constructed() && inst->owned) {
+        if (!v_h.holder_constructed() && inst->aaa_owned) {
             new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(v_h.xxx_value_ptr<type>());  // init_holder
             v_h.set_holder_constructed();
         }
@@ -1486,7 +1486,7 @@ private:
         if (holder_ptr) {
             init_holder_from_existing(v_h, holder_ptr, std::is_copy_constructible<holder_type>());
             v_h.set_holder_constructed();
-        } else if (inst->owned || detail::always_construct_holder<holder_type>::value) {
+        } else if (inst->aaa_owned || detail::always_construct_holder<holder_type>::value) {
             new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(v_h.xxx_value_ptr<type>());  // init_holder
             v_h.set_holder_constructed();
         }
@@ -1495,7 +1495,7 @@ private:
     /// Performs instance initialization including constructing a holder and registering the known
     /// instance.  Should be called as soon as the `type` value_ptr is set for an instance.  Takes an
     /// optional pointer to an existing holder to use; if not specified and the instance is
-    /// `.owned`, a new holder will be constructed to manage the value pointer.
+    /// `.aaa_owned`, a new holder will be constructed to manage the value pointer.
     static void init_instance(detail::instance *inst, const void *holder_ptr) {
         auto v_h = inst->get_value_and_holder(detail::get_type_info(typeid(type)));
         if (!v_h.instance_registered()) {
