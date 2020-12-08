@@ -44,6 +44,11 @@ inline int pass_shared_pointee(std::shared_ptr<pointee> ptr) {
     return 5000 + ptr->get_int();
 }
 
+inline pointee* get_static_pointee() {
+  static pointee cpp_instance;
+  return &cpp_instance;
+}
+
 TEST_SUBMODULE(holder_unique_ptr, m) {
     m.def("to_cout", to_cout);
 
@@ -55,6 +60,9 @@ TEST_SUBMODULE(holder_unique_ptr, m) {
     m.def("make_shared_pointee", make_shared_pointee);
     // m.def("pass_unique_pointee", pass_unique_pointee);
     m.def("pass_shared_pointee", pass_shared_pointee);
+
+    m.def("get_static_pointee",
+          get_static_pointee, py::return_value_policy::reference);
 }
 
 } // namespace holder_unique_ptr

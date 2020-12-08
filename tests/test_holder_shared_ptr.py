@@ -1,5 +1,7 @@
-# KEEP IN SYNC WITH test_holder_unique_ptr.py
 # -*- coding: utf-8 -*-
+# KEEP IN SYNC WITH test_holder_unique_ptr.py
+import pytest
+
 from pybind11_tests import holder_shared_ptr as m
 
 
@@ -41,3 +43,14 @@ def test_pass_shared_pointee():
     i = m.pass_shared_pointee(obj)
     assert i == 5213
     m.to_cout("")
+
+
+def test_get_static_pointee():
+    m.to_cout("")
+    m.to_cout("")
+    m.to_cout("get_static_pointee")
+    obj = m.get_static_pointee()
+    assert obj.get_int() == 213
+    with pytest.raises(RuntimeError) as excinfo:
+        m.pass_shared_pointee(obj)
+    assert "Unable to cast from non-held to held instance" in str(excinfo.value)
