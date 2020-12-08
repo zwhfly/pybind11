@@ -340,7 +340,7 @@ inline PyObject *make_new_instance(PyTypeObject *type) {
     // Allocate the value/holder internals:
     inst->allocate_layout();
 
-    inst->aaa_owned = true;
+    inst->aaa_owned = true;  // (ALMOST?) ALWAYS USED.
 
     return self;
 }

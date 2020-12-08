@@ -392,7 +392,7 @@ PYBIND11_NOINLINE inline void instance::allocate_layout() {
 #endif
         nonsimple.status = reinterpret_cast<uint8_t *>(&nonsimple.values_and_holders[flags_at]);
     }
-    aaa_owned = true;
+    aaa_owned = true;  // (ALMOST?) ALWAYS USED.
 }
 
 PYBIND11_NOINLINE inline void instance::deallocate_layout() {
@@ -518,7 +518,7 @@ public:
 
         auto inst = reinterpret_steal<object>(make_new_instance(tinfo->type));
         auto wrapper = reinterpret_cast<instance *>(inst.ptr());
-        wrapper->aaa_owned = false;
+        // wrapper->aaa_owned = false;  NOT NEEDED
         void *&valueptr = values_and_holders(wrapper).begin()->xxx_value_ptr<void>();  // holder_type not available here.
 
         switch (policy) {
@@ -526,12 +526,14 @@ public:
             case return_value_policy::take_ownership:
                 valueptr = src;
                 wrapper->aaa_owned = true;
+                // to_cout("aaa_owned = true switch policy return_value_policy::automatic,take_ownership");
                 break;
 
             case return_value_policy::automatic_reference:
             case return_value_policy::reference:
                 valueptr = src;
                 wrapper->aaa_owned = false;
+                // to_cout("aaa_owned = false switch policy return_value_policy::automatic_reference,reference");
                 break;
 
             case return_value_policy::copy:
@@ -549,6 +551,7 @@ public:
 #endif
                 }
                 wrapper->aaa_owned = true;
+                // to_cout("aaa_owned = true switch policy return_value_policy::copy");
                 break;
 
             case return_value_policy::move:
@@ -569,11 +572,13 @@ public:
 #endif
                 }
                 wrapper->aaa_owned = true;
+                // to_cout("aaa_owned = true switch policy return_value_policy::move");
                 break;
 
             case return_value_policy::reference_internal:
                 valueptr = src;
                 wrapper->aaa_owned = false;
+                // to_cout("aaa_owned = false switch policy return_value_policy::reference_internal");
                 keep_alive_impl(inst, parent);
                 break;
 

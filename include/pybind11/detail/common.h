@@ -163,6 +163,8 @@
 #include <typeindex>
 #include <type_traits>
 
+#include <iostream>
+
 #if PY_MAJOR_VERSION >= 3 /// Compatibility macros for various Python versions
 #define PYBIND11_INSTANCE_METHOD_NEW(ptr, class_) PyInstanceMethod_New(ptr)
 #define PYBIND11_INSTANCE_METHOD_CHECK PyInstanceMethod_Check
@@ -388,6 +390,10 @@ enum class return_value_policy : uint8_t {
 };
 
 PYBIND11_NAMESPACE_BEGIN(detail)
+
+inline void to_cout(std::string msg) {
+    std::cout << std::endl << msg << std::endl;
+}
 
 inline static constexpr int log2(size_t n, int k = 0) { return (n <= 1) ? k : log2(n >> 1, k + 1); }
 
