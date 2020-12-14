@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../pytypes.h"
+#include <any>
 
 PYBIND11_NAMESPACE_BEGIN(PYBIND11_NAMESPACE)
 PYBIND11_NAMESPACE_BEGIN(detail)
@@ -130,7 +131,7 @@ struct type_info {
     const std::type_info *cpptype;
     size_t type_size, type_align, holder_size_in_ptrs;
     void *(*operator_new)(size_t);
-    void (*init_instance)(instance *, const void *);
+    void (*init_instance)(instance *, std::any);
     void (*dealloc)(value_and_holder &v_h);
     std::vector<PyObject *(*)(PyObject *, PyTypeObject *)> implicit_conversions;
     std::vector<std::pair<const std::type_info *, void *(*)(void *)>> implicit_casts;

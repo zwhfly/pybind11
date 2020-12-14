@@ -80,6 +80,7 @@ std::vector<std::unique_ptr<Animal>> create_zoo()
     ret.emplace_back(new Chihuahua("Hertzl"));
     ret.emplace_back(new Cat("Tiger", Cat::Kind::Cat));
     ret.emplace_back(new Panther("Leo"));
+    py::detail::to_cout("before ret");
     return ret;
 }
 

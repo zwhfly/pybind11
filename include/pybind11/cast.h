@@ -14,6 +14,7 @@
 #include "detail/typeid.h"
 #include "detail/descr.h"
 #include "detail/internals.h"
+#include <any>
 #include <array>
 #include <limits>
 #include <tuple>
@@ -232,6 +233,13 @@ struct value_and_holder {
     explicit operator bool() const { return xxx_value_ptr<void>(); }
 
     template <typename H> H &xxx_holder() const {
+#ifdef JUNK
+        to_cout(std::string("xxx_holder<") + typeid(H).name() + ">");
+if (std::string(typeid(H).name()) == "St10shared_ptrIN14pybind11_tests17holder_shared_ptr7pointeeEE") {
+  long *BAD = nullptr;
+  std::cout << *BAD;
+}
+#endif
         return reinterpret_cast<H &>(zzz_vh[1]);
     }
     bool holder_constructed() const {
@@ -500,7 +508,7 @@ public:
                                          const detail::type_info *tinfo,
                                          void *(*copy_constructor)(const void *),
                                          void *(*move_constructor)(const void *),
-                                         const void *existing_holder = nullptr) {
+                                         std::any existing_holder = std::any{}) {
         if (!tinfo) // no type info: error will be set already
             return handle();
 
@@ -586,7 +594,7 @@ public:
                 throw cast_error("unhandled return_value_policy: should not happen!");
         }
 
-        tinfo->init_instance(wrapper, existing_holder);
+        tinfo->init_instance(wrapper, existing_holder);  // HOLDER_SHARED_MAKE_UNIQUE STACK #4
 
         return inst.release();
     }
@@ -913,10 +921,10 @@ public:
             make_copy_constructor(src), make_move_constructor(src));
     }
 
-    static handle cast_holder(const itype *src, const void *holder) {
+    static handle cast_holder(const itype *src, std::any holder) {
         auto st = src_and_type(src);
-        return type_caster_generic::cast(
-            st.first, return_value_policy::take_ownership, {}, st.second,
+        return type_caster_generic::cast(  // HOLDER_SHARED_MAKE_UNIQUE STACK #5
+            st.first, return_value_policy::take_ownership, {}, st.second,  // tinfo=st.second  TODODODO return_value_policy::existing_holder
             nullptr, nullptr, holder);
     }
 
@@ -1582,7 +1590,7 @@ struct move_only_holder_caster {
 
     static handle cast(holder_type &&src, return_value_policy, handle) {
         auto *ptr = holder_helper<holder_type>::yyy_get(src);  // move_only_holder_caster::cast
-        return type_caster_base<type>::cast_holder(ptr, std::addressof(src));
+        return type_caster_base<type>::cast_holder(ptr, std::addressof(src));  // HOLDER_SHARED_MAKE_UNIQUE STACK #6
     }
     static constexpr auto name = type_caster_base<type>::name;
 };

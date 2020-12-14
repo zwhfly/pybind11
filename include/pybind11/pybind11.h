@@ -158,7 +158,7 @@ protected:
                       "The number of argument annotations does not match the number of function arguments");
 
         /* Dispatch code which converts function arguments and performs the actual function call */
-        rec->impl = [](function_call &call) -> handle {
+        rec->impl = [](function_call &call) -> handle {  // HOLDER_SHARED_MAKE_UNIQUE STACK #8
             cast_in args_converter;
 
             /* Try to cast the function arguments into the C++ domain */
@@ -180,7 +180,7 @@ protected:
             using Guard = extract_guard_t<Extra...>;
 
             /* Perform the function call */
-            handle result = cast_out::cast(
+            handle result = cast_out::cast(  // HOLDER_SHARED_MAKE_UNIQUE STACK #7
                 std::move(args_converter).template call<Return, Guard>(cap->f), policy, call.parent);
 
             /* Invoke call policy post-call hook */
@@ -713,7 +713,7 @@ protected:
 
                 // 6. Call the function.
                 try {
-                    loader_life_support guard{};
+                    loader_life_support guard{};  // HOLDER_SHARED_MAKE_UNIQUE STACK #9
                     result = func.impl(call);
                 } catch (reference_cast_error &) {
                     result = PYBIND11_TRY_NEXT_OVERLOAD;
@@ -1472,19 +1472,19 @@ private:
 
     static void init_holder_from_existing(const detail::value_and_holder &v_h,
             const holder_type *holder_ptr, std::true_type /*is_copy_constructible*/) {
-        new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(*reinterpret_cast<const holder_type *>(holder_ptr));
+        new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(*reinterpret_cast<const holder_type *>(holder_ptr));  // HOLDER_SHARED_MAKE_UNIQUE STACK #1
     }
 
     static void init_holder_from_existing(const detail::value_and_holder &v_h,
             const holder_type *holder_ptr, std::false_type /*is_copy_constructible*/) {
-        new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(std::move(*const_cast<holder_type *>(holder_ptr)));
+        new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(std::move(*const_cast<holder_type *>(holder_ptr)));  // DIRTY CONST_CAST
     }
 
     /// Initialize holder object, variant 2: try to construct from existing holder object, if possible
     static void init_holder(detail::instance *inst, detail::value_and_holder &v_h,
             const holder_type *holder_ptr, const void * /* dummy -- not enable_shared_from_this<T>) */) {
         if (holder_ptr) {
-            init_holder_from_existing(v_h, holder_ptr, std::is_copy_constructible<holder_type>());
+            init_holder_from_existing(v_h, holder_ptr, std::is_copy_constructible<holder_type>());  // HOLDER_SHARED_MAKE_UNIQUE STACK #2
             v_h.set_holder_constructed();
         } else if (inst->aaa_owned || detail::always_construct_holder<holder_type>::value) {
             new (std::addressof(v_h.xxx_holder<holder_type>())) holder_type(v_h.xxx_value_ptr<type>());  // init_holder
@@ -1496,13 +1496,33 @@ private:
     /// instance.  Should be called as soon as the `type` value_ptr is set for an instance.  Takes an
     /// optional pointer to an existing holder to use; if not specified and the instance is
     /// `.aaa_owned`, a new holder will be constructed to manage the value pointer.
-    static void init_instance(detail::instance *inst, const void *holder_ptr) {
+    static void init_instance(detail::instance *inst, std::any holder_ptr) {  // TODODODO std::any
         auto v_h = inst->get_value_and_holder(detail::get_type_info(typeid(type)));
         if (!v_h.instance_registered()) {
             register_instance(inst, v_h.xxx_value_ptr<void>(), v_h.type);  // before init_holder
             v_h.set_instance_registered();
         }
-        init_holder(inst, v_h, (const holder_type *) holder_ptr, v_h.xxx_value_ptr<type>());  // calling init_holder
+        const holder_type *holder_ptr_raw = nullptr;
+        if (holder_ptr.has_value() && std::any_cast<std::nullptr_t>(&holder_ptr) == nullptr) {
+            detail::to_cout("before any_cast");
+            std::string htn(holder_ptr.type().name());
+            detail::clean_type_id(htn);
+            detail::to_cout(std::string("holder_ptr.type().name() ")  + htn);
+            detail::to_cout(std::string("   typeid(holder_type *) ")  + type_id<holder_type *>());
+            auto cast_ptr_mutbl = std::any_cast<holder_type *>(&holder_ptr);
+            if (cast_ptr_mutbl != nullptr) {
+                holder_ptr_raw = *cast_ptr_mutbl;
+            } else {
+                auto cast_ptr_const = std::any_cast<const holder_type *>(&holder_ptr);
+                if (cast_ptr_const == nullptr) {
+                    detail::to_cout("any_cast mutbl + const failure");
+                    throw std::runtime_error("Incompatible holder types.");
+                }
+                holder_ptr_raw = *cast_ptr_const;
+            }
+            detail::to_cout("after any_cast");
+        }
+        init_holder(inst, v_h, holder_ptr_raw, v_h.xxx_value_ptr<type>());  // calling init_holder  // HOLDER_SHARED_MAKE_UNIQUE STACK #3
     }
 
     /// Deallocates an instance; via holder, if constructed; otherwise via operator delete.
