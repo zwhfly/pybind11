@@ -245,7 +245,7 @@ struct type_record {
     void *(*operator_new)(size_t) = nullptr;
 
     /// Function pointer to class_<..>::init_instance
-    void (*init_instance)(instance *, std::any) = nullptr;
+    void (*init_instance)(instance *, void_ptr_with_type_info) = nullptr;
 
     /// Function pointer to class_<..>::dealloc
     void (*dealloc)(detail::value_and_holder &) = nullptr;

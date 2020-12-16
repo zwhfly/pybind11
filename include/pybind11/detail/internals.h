@@ -10,7 +10,6 @@
 #pragma once
 
 #include "../pytypes.h"
-#include <any>
 
 PYBIND11_NAMESPACE_BEGIN(PYBIND11_NAMESPACE)
 PYBIND11_NAMESPACE_BEGIN(detail)
@@ -124,6 +123,26 @@ struct internals {
 #endif
 };
 
+struct void_ptr_with_type_info {
+    const void *ptr;
+    std::string type_info_name_non_const;
+    std::string type_info_name_orig;
+
+    void_ptr_with_type_info()
+        : ptr{nullptr},
+          type_info_name_non_const{typeid(std::nullptr_t).name()},
+          type_info_name_orig{typeid(std::nullptr_t).name()} {}
+
+    template <typename T>
+    void_ptr_with_type_info(T orig_ptr)
+        : ptr{orig_ptr},
+          type_info_name_non_const{
+              typeid(typename std::add_pointer<typename std::remove_cv<
+                         typename std::remove_pointer<T>::type>::type>::type)
+                  .name()},
+          type_info_name_orig{typeid(T).name()} {}
+};
+
 /// Additional type information which does not fit into the PyTypeObject.
 /// Changes to this struct also require bumping `PYBIND11_INTERNALS_VERSION`.
 struct type_info {
@@ -131,7 +150,7 @@ struct type_info {
     const std::type_info *cpptype;
     size_t type_size, type_align, holder_size_in_ptrs;
     void *(*operator_new)(size_t);
-    void (*init_instance)(instance *, std::any);
+    void (*init_instance)(instance *, void_ptr_with_type_info);
     void (*dealloc)(value_and_holder &v_h);
     std::vector<PyObject *(*)(PyObject *, PyTypeObject *)> implicit_conversions;
     std::vector<std::pair<const std::type_info *, void *(*)(void *)>> implicit_casts;

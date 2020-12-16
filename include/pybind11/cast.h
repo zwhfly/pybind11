@@ -14,7 +14,6 @@
 #include "detail/typeid.h"
 #include "detail/descr.h"
 #include "detail/internals.h"
-#include <any>
 #include <array>
 #include <limits>
 #include <tuple>
@@ -508,7 +507,7 @@ public:
                                          const detail::type_info *tinfo,
                                          void *(*copy_constructor)(const void *),
                                          void *(*move_constructor)(const void *),
-                                         std::any existing_holder = std::any{}) {
+                                         void_ptr_with_type_info existing_holder = void_ptr_with_type_info{}) {
         if (!tinfo) // no type info: error will be set already
             return handle();
 
@@ -921,7 +920,7 @@ public:
             make_copy_constructor(src), make_move_constructor(src));
     }
 
-    static handle cast_holder(const itype *src, std::any holder) {
+    static handle cast_holder(const itype *src, void_ptr_with_type_info holder) {
         auto st = src_and_type(src);
         return type_caster_generic::cast(  // HOLDER_SHARED_MAKE_UNIQUE STACK #5
             st.first, return_value_policy::take_ownership, {}, st.second,  // tinfo=st.second  TODODODO return_value_policy::existing_holder

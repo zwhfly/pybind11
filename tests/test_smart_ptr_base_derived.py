@@ -33,6 +33,5 @@ def test_virtual():
     vb = m.make_shared_vderived_up_cast()
     assert vb.get_int() == VDERIVED_GET_INT_RESULT
     m.pass_shared_vbase(vb)
-    with pytest.raises(TypeError):
-        m.pass_shared_vderived(vb)
+    m.pass_shared_vderived(vb)
     m.to_cout("")

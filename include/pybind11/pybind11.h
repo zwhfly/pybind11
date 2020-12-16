@@ -1496,33 +1496,23 @@ private:
     /// instance.  Should be called as soon as the `type` value_ptr is set for an instance.  Takes an
     /// optional pointer to an existing holder to use; if not specified and the instance is
     /// `.aaa_owned`, a new holder will be constructed to manage the value pointer.
-    static void init_instance(detail::instance *inst, std::any holder_ptr) {  // TODODODO std::any
+    static void init_instance(detail::instance *inst, detail::void_ptr_with_type_info holder_ptr) {
         auto v_h = inst->get_value_and_holder(detail::get_type_info(typeid(type)));
         if (!v_h.instance_registered()) {
             register_instance(inst, v_h.xxx_value_ptr<void>(), v_h.type);  // before init_holder
             v_h.set_instance_registered();
         }
-        const holder_type *holder_ptr_raw = nullptr;
-        if (holder_ptr.has_value() && std::any_cast<std::nullptr_t>(&holder_ptr) == nullptr) {
-            detail::to_cout("before any_cast");
-            std::string htn(holder_ptr.type().name());
-            detail::clean_type_id(htn);
-            detail::to_cout(std::string("holder_ptr.type().name() ")  + htn);
-            detail::to_cout(std::string("   typeid(holder_type *) ")  + type_id<holder_type *>());
-            auto cast_ptr_mutbl = std::any_cast<holder_type *>(&holder_ptr);
-            if (cast_ptr_mutbl != nullptr) {
-                holder_ptr_raw = *cast_ptr_mutbl;
-            } else {
-                auto cast_ptr_const = std::any_cast<const holder_type *>(&holder_ptr);
-                if (cast_ptr_const == nullptr) {
-                    detail::to_cout("any_cast mutbl + const failure");
-                    throw std::runtime_error("Incompatible holder types.");
-                }
-                holder_ptr_raw = *cast_ptr_const;
+        if (holder_ptr.ptr != nullptr) {
+            std::string existing_hptn(holder_ptr.type_info_name_non_const);
+            detail::clean_type_id(existing_hptn);
+            std::string instance_hptn = type_id<holder_type *>();
+            detail::to_cout(std::string("holder_ptr.type_info_name ")  + existing_hptn);
+            detail::to_cout(std::string("    typeid(holder_type *) ")  + instance_hptn);
+            if (existing_hptn != instance_hptn) {
+              detail::to_cout(std::string("HOLDER_MISMATCH # ") + existing_hptn + " # " + instance_hptn);
             }
-            detail::to_cout("after any_cast");
         }
-        init_holder(inst, v_h, holder_ptr_raw, v_h.xxx_value_ptr<type>());  // calling init_holder  // HOLDER_SHARED_MAKE_UNIQUE STACK #3
+        init_holder(inst, v_h, (const holder_type *) holder_ptr.ptr, v_h.xxx_value_ptr<type>());  // calling init_holder  // HOLDER_SHARED_MAKE_UNIQUE STACK #3
     }
 
     /// Deallocates an instance; via holder, if constructed; otherwise via operator delete.
