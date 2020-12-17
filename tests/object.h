@@ -61,6 +61,8 @@ class ref_tag {};
  */
 template <typename T> class ref {
 public:
+    using element_type = T;
+
     /// Create a nullptr reference
     ref() : m_ptr(nullptr) { print_default_created(this); track_default_created((ref_tag*) this); }
 
