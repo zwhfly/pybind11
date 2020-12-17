@@ -1508,8 +1508,15 @@ private:
             std::string instance_hptn = type_id<holder_type *>();
             detail::to_cout(std::string("holder_ptr.type_info_name ")  + existing_hptn);
             detail::to_cout(std::string("    typeid(holder_type *) ")  + instance_hptn);
+            bool existing_poly = holder_ptr.is_polymorphic;
+            bool instance_poly = std::is_polymorphic<type_>::value;
             if (existing_hptn != instance_hptn) {
-              detail::to_cout(std::string("HOLDER_MISMATCH # ") + existing_hptn + " # " + instance_hptn);
+              detail::to_cout(
+                  std::string("HOLDER_MISMATCH ") +
+                  (existing_poly ? "V" : "C") +
+                  (instance_poly ? "V" : "C") +
+                  " # " + existing_hptn +
+                  " # " + instance_hptn);
             }
         }
         init_holder(inst, v_h, (const holder_type *) holder_ptr.ptr, v_h.xxx_value_ptr<type>());  // calling init_holder  // HOLDER_SHARED_MAKE_UNIQUE STACK #3

@@ -123,15 +123,25 @@ struct internals {
 #endif
 };
 
+template <typename T, typename SFINAE = void> struct optional_element_type {
+    using element_type = void;
+};
+
+template <typename C>
+struct optional_element_type<C, std::void_t<typename C::element_type>> {
+    using element_type = typename C::element_type;
+};
+
 struct void_ptr_with_type_info {
     const void *ptr;
     std::string type_info_name_non_const;
     std::string type_info_name_orig;
+    bool is_polymorphic;
 
     void_ptr_with_type_info()
-        : ptr{nullptr},
-          type_info_name_non_const{typeid(std::nullptr_t).name()},
-          type_info_name_orig{typeid(std::nullptr_t).name()} {}
+        : ptr{nullptr}, type_info_name_non_const{typeid(std::nullptr_t).name()},
+          type_info_name_orig{typeid(std::nullptr_t).name()}, is_polymorphic{
+                                                                  false} {}
 
     template <typename T>
     void_ptr_with_type_info(T orig_ptr)
@@ -140,7 +150,9 @@ struct void_ptr_with_type_info {
               typeid(typename std::add_pointer<typename std::remove_cv<
                          typename std::remove_pointer<T>::type>::type>::type)
                   .name()},
-          type_info_name_orig{typeid(T).name()} {}
+          type_info_name_orig{typeid(T).name()},
+          is_polymorphic{std::is_polymorphic<typename optional_element_type<
+              typename std::remove_pointer<T>::type>::element_type>::value} {}
 };
 
 /// Additional type information which does not fit into the PyTypeObject.
