@@ -45,6 +45,8 @@ class vderived : public vbase {
   int base_get_int(const vbase& base) { return get_int() + base.get_int(); }
 };
 
+class vrederived : public vderived {};
+
 inline std::unique_ptr<cbase>
 make_unique_cderived_up_cast() {
   // Undefined Behavior (pure C++ problem, NOT a pybind11 problem):
@@ -110,6 +112,10 @@ inline int pass_shared_vderived(std::shared_ptr<vderived> vd) {
   return vd->get_int();
 }
 
+inline int pass_shared_vrederived(std::shared_ptr<vrederived> vr) {
+  return vr->get_int();
+}
+
 TEST_SUBMODULE(smart_ptr_base_derived, m) {
     m.def("to_cout", to_cout);
 
@@ -125,6 +131,9 @@ TEST_SUBMODULE(smart_ptr_base_derived, m) {
         .def("get_int", &vbase::get_int);
 
     py::class_<vderived, vbase, std::shared_ptr<vderived>>(m, "vderived")
+        .def(py::init<>());
+
+    py::class_<vrederived, vderived, std::shared_ptr<vrederived>>(m, "vrederived")
         .def(py::init<>());
 
     m.def("make_shared_cderived",
@@ -144,6 +153,7 @@ TEST_SUBMODULE(smart_ptr_base_derived, m) {
           py::arg("use_custom_deleter") = false);
     m.def("pass_shared_vbase", pass_shared_vbase);
     m.def("pass_shared_vderived", pass_shared_vderived);
+    m.def("pass_shared_vrederived", pass_shared_vrederived);
 }
 
 }  // namespace smart_ptr_base_derived

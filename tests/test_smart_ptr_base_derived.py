@@ -30,8 +30,11 @@ def test_virtual():
     assert vd.get_int() == VDERIVED_GET_INT_RESULT
     m.pass_shared_vderived(vd)
     m.pass_shared_vbase(vd)
-    vb = m.make_shared_vderived_up_cast()
-    assert vb.get_int() == VDERIVED_GET_INT_RESULT
-    m.pass_shared_vbase(vb)
-    m.pass_shared_vderived(vb)
+    vd_uc = m.make_shared_vderived_up_cast()
+    assert vd_uc.get_int() == VDERIVED_GET_INT_RESULT
+    assert isinstance(vd_uc, m.vderived)  # pybind11 un-did upcast.
+    m.pass_shared_vbase(vd_uc)  # HOW DOES THIS UPCAST HAPPEN?
+    m.pass_shared_vderived(vd_uc)
+    with pytest.raises(TypeError):
+        m.pass_shared_vrederived(vd_uc)
     m.to_cout("")
