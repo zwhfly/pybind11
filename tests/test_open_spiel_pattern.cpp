@@ -15,23 +15,28 @@ public:
     int bar(int i) { return num + i; }
 };
 
-using FooFactory = std::function<Foo()>;
+} // namespace open_spiel_pattern
+} // namespace pybind11_tests
 
-int MakeAndUseFoo(FooFactory f) {
-    auto foo = f();
-    return foo.bar(456);
+PYBIND11_SMART_HOLDER_TYPE_CASTERS(pybind11_tests::open_spiel_pattern::Foo)
+
+namespace pybind11_tests {
+namespace open_spiel_pattern {
+
+int RecycleFoo() {
+    Foo foo_orig(123);
+    py::object foo_py = py::cast(foo_orig);
+    auto foo_from_py  = py::cast<std::unique_ptr<Foo>>(foo_py);
+    return foo_from_py->bar(456);
 }
 
 } // namespace open_spiel_pattern
 } // namespace pybind11_tests
 
-// To use py::smart_holder, uncomment the next line and change py::class_ below to py::classh.
-// PYBIND11_SMART_HOLDER_TYPE_CASTERS(pybind11_tests::open_spiel_pattern::Foo)
-
 TEST_SUBMODULE(open_spiel_pattern, m) {
     using namespace pybind11_tests::open_spiel_pattern;
 
-    py::class_<Foo>(m, "Foo").def(py::init<int>()).def("bar", &Foo::bar);
+    py::classh<Foo>(m, "Foo");
 
-    m.def("make_and_use_foo", MakeAndUseFoo);
+    m.def("recycle_foo", RecycleFoo);
 }

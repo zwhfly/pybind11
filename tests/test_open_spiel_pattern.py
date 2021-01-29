@@ -3,6 +3,7 @@ import pytest
 
 from pybind11_tests import open_spiel_pattern as m
 
-def test_make_and_use_foo():
-    res = m.make_and_use_foo(lambda : m.Foo(123))
+
+def test_recycle_foo():
+    res = m.recycle_foo()
     assert res == 579
