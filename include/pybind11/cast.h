@@ -1560,6 +1560,7 @@ struct smart_holder_type_caster<std::unique_ptr<T const>> : smart_holder_type_ca
     operator std::unique_ptr<T const>() { return this->loaded_as_unique_ptr(); }
 };
 
+#ifndef PYBIND11_USE_SMART_HOLDER_AS_DEFAULT
 #define PYBIND11_SMART_HOLDER_TYPE_CASTERS(T)                                                     \
     namespace pybind11 {                                                                          \
     namespace detail {                                                                            \
@@ -1579,10 +1580,36 @@ struct smart_holder_type_caster<std::unique_ptr<T const>> : smart_holder_type_ca
         : public smart_holder_type_caster<std::unique_ptr<T const>> {};                           \
     }                                                                                             \
     }
+#endif
 
 //DETAIL/SMART_HOLDER_TYPE_CASTERS_H///////////////////////////////////////////////////////////////
 
+#ifndef PYBIND11_USE_SMART_HOLDER_AS_DEFAULT
+
 template <typename type, typename SFINAE = void> class type_caster : public type_caster_base<type> { };
+
+#else
+
+template <typename type, typename SFINAE = void> class type_caster : public smart_holder_type_caster<type> {};
+
+template <typename T>
+class type_caster<std::shared_ptr<T>> : public smart_holder_type_caster<std::shared_ptr<T>> {};
+
+template <typename T>
+class type_caster<std::shared_ptr<T const>>
+    : public smart_holder_type_caster<std::shared_ptr<T const>> {};
+
+template <typename T>
+class type_caster<std::unique_ptr<T>> : public smart_holder_type_caster<std::unique_ptr<T>> {};
+
+template <typename T>
+class type_caster<std::unique_ptr<T const>>
+    : public smart_holder_type_caster<std::unique_ptr<T const>> {};
+
+#define PYBIND11_SMART_HOLDER_TYPE_CASTERS(T)
+
+#endif
+
 template <typename type> using make_caster = type_caster<intrinsic_t<type>>;
 
 // Shortcut for calling a caster's `cast_op_type` cast operator for casting a type_caster to a T
@@ -2227,9 +2254,11 @@ protected:
     holder_type holder;
 };
 
+#ifndef PYBIND11_USE_SMART_HOLDER_AS_DEFAULT
 /// Specialize for the common std::shared_ptr, so users don't need to
 template <typename T>
 class type_caster<std::shared_ptr<T>> : public copyable_holder_caster<T, std::shared_ptr<T>> { };
+#endif
 
 template <typename type, typename holder_type>
 struct move_only_holder_caster {
@@ -2243,9 +2272,11 @@ struct move_only_holder_caster {
     static constexpr auto name = type_caster_base<type>::name;
 };
 
+#ifndef PYBIND11_USE_SMART_HOLDER_AS_DEFAULT
 template <typename type, typename deleter>
 class type_caster<std::unique_ptr<type, deleter>>
     : public move_only_holder_caster<type, std::unique_ptr<type, deleter>> { };
+#endif
 
 template <typename type, typename holder_type>
 using type_caster_holder = conditional_t<is_copy_constructible<holder_type>::value,
