@@ -882,6 +882,7 @@ protected:
     using reference = const handle; // PR #3263
     using pointer = arrow_proxy<const handle>;
 
+    sequence_fast_readonly() = default;
     sequence_fast_readonly(handle obj, ssize_t n) : ptr(PySequence_Fast_ITEMS(obj.ptr()) + n) {}
 
     // NOLINTNEXTLINE(readability-const-return-type) // PR #3263
@@ -893,7 +894,7 @@ protected:
     ssize_t distance_to(const sequence_fast_readonly &b) const { return ptr - b.ptr; }
 
 private:
-    PyObject **ptr;
+    PyObject **ptr = nullptr;
 };
 
 /// Full read and write access using the sequence protocol: see ``detail::sequence_accessor``
